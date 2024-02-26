@@ -6,7 +6,7 @@ A library of Telegram Bot API for Perl
 
 ## Installation
 
-Install Perlgram with CPAN
+Install Perlgram with CPAN ( soon )
 
 ```bash
   cpan install Perlgram
@@ -48,3 +48,6 @@ $bot->handleUpdates(sub {
 
 - [@AmiRCandy](https://www.github.com/AmiRCandy)
 
+
+- Please using my Discord id say the problems to me I will fix them as soon as possible , This is my first Perl project so be sure there is lots of problem
+- Coded by ❤️ ;
