@@ -41,12 +41,9 @@ sub _remove_undef_keys_recursive {
 
 sub _request {
     my ($self, $method, $data) = @_;
-
     my $filtered_data = _remove_undef_keys_recursive($data);
-    print Dumper($filtered_data);
     my $response = $self->{requ}->post("https://api.telegram.org/bot" . $self->{token} . "/" . $method, $filtered_data);
     my $content = $response->decoded_content;
-
     return $self->{json}->decode($content);
 }
 
@@ -1297,13 +1294,16 @@ sub deleteMessages {
 sub handleUpdates {
     my ($self, $handler) = @_;
     my $last_update_id = 0;
-    my $up = $self->getUpdates();
+    while (1) {
+        my $up = $self->getUpdates($last_update_id);
     foreach my $update (@{$up->{'result'}}) {
         my $update_id = $update->{update_id};
         $handler->($update);
-        $last_update_id = $update_id if $update_id > $last_update_id;
+        $last_update_id = $update_id + 1;
+        print $last_update_id;
     }
     sleep 1;
+    }
 }
 
 1;
