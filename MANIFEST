@@ -1,0 +1,11 @@
+Example/main.pl
+lib/Perlgram/Bot/core.pm
+lib/Perlgram/Bot/file.pm
+lib/Perlgram/Bot/keyboard.pm
+lib/Perlgram/Bot/method.pm
+lib/Perlgram/Bot/parsemode.pm
+LICENSE
+Makefile.PL
+MANIFEST			This list of files
+README.md
+README.pod
