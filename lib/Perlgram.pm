@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use HTTP::Tiny;
 use JSON qw(encode_json decode_json);
+use URI::Escape;
 use Log::Log4perl qw(:easy);
 use Perlgram::Error;
 
@@ -30,211 +31,170 @@ sub _init_logger {
     Log::Log4perl->easy_init($Log::Log4perl::DEBUG);
 }
 
+# In Perlgram.pm, replace the api_request method with this debug version:
 sub api_request {
-    my ($self, $method, $params, $multipart) = @_;
+    my ($self, $method, $params) = @_;
     my $url = $self->{api_url} . $self->{token} . "/$method";
-    $self->{logger}->debug("Preparing to send request to $url");
-    
-    # Log the request parameters
-    if ($params) {
-        $self->{logger}->debug("Request params: " . (ref $params eq 'HASH' ? encode_json($params) : $params));
-    }
+
+    #print "DEBUG: Attempting to call $url\n";  # Add this debug line
 
     my $response;
     eval {
-        if ($multipart) {
-            $response = $self->{ua}->post_form(
-                $url,
-                $params,
-                { content_type => 'multipart/form-data' }
-            );
-        } elsif ($params && ref($params) eq 'HASH') {
-            $response = $self->{ua}->post(
-                $url,
-                {
-                    content_type => 'application/json',
-                    content      => encode_json($params),
-                }
-            );
+        if ($params && ref($params) eq 'HASH') {
+            # For GET methods like getUpdates
+            if ($method eq 'getUpdates') {
+                my $query_string = join '&', map { 
+                    uri_escape($_) . '=' . uri_escape($params->{$_}) 
+                } keys %$params;
+                $url .= '?' . $query_string;
+                #print "DEBUG: GET URL: $url\n";  # Debug the final URL
+                $response = $self->{ua}->get($url);
+            } 
+            # For POST methods
+            else {
+                my $content = encode_json($params);
+                #print "DEBUG: POST Content: $content\n";  # Debug POST data
+                $response = $self->{ua}->post(
+                    $url,
+                    {
+                        headers => { 'Content-Type' => 'application/json' },
+                        content => $content
+                    }
+                );
+            }
         } else {
+            #print "DEBUG: Simple GET: $url\n";  # Debug simple GET
             $response = $self->{ua}->get($url);
         }
+
     };
 
     if ($@) {
-        $self->{logger}->error("Connection error: $@ (method: $method)");
-        my $error = Perlgram::Error->new(
-            message => "Connection error: $@",
-            code    => 500,
-        );
-        if ($self->{on_error}) {
-            $self->{on_error}->($error);
-            return undef;
-        }
-        $error->throw;
+        print "ERROR: $@\n";
+        return undef;
     }
 
-    unless ($response && ref($response) eq 'HTTP::Response') {
-        $self->{logger}->error("Invalid response object (method: $method)");
-        my $error = Perlgram::Error->new(
-            message => "Invalid response from server",
-            code    => 500,
-        );
-        if ($self->{on_error}) {
-            $self->{on_error}->($error);
-            return undef;
-        }
-        $error->throw;
+    unless ($response->{success}) {
+        print "HTTP ERROR: Status $response->{status}\n";
+        print "Content: $response->{content}\n";
+        return undef;
     }
 
-    if ($response->{success}) {
-        my $data = eval { decode_json($response->{content}) };
-        if ($@) {
-            $self->{logger}->error("JSON decode error: $@ (method: $method)");
-            my $error = Perlgram::Error->new(
-                message => "JSON decode error: $@",
-                code    => 500,
-            );
-            if ($self->{on_error}) {
-                $self->{on_error}->($error);
-                return undef;
-            }
-            $error->throw;
-        }
-        if ($data->{ok}) {
-            return $data->{result};
-        } else {
-            $self->{logger}->error("API error: $data->{description} (code: $data->{error_code}, method: $method)");
-            my $error = Perlgram::Error->new(
-                message => "API error: $data->{description} (method: $method)",
-                code    => $data->{error_code},
-            );
-            if ($self->{on_error}) {
-                $self->{on_error}->($error);
-                return undef;
-            }
-            $error->throw;
-        }
-    } else {
-        my $error_detail = $response->{content} || ($response->{status} || "Unknown error");
-        $self->{logger}->error("HTTP error: $error_detail (method: $method)");
-        my $error = Perlgram::Error->new(
-            message => "HTTP error: $error_detail",
-            code    => $response->{status} || 500,
-        );
-        if ($self->{on_error}) {
-            $self->{on_error}->($error);
-            return undef;
-        }
-        $error->throw;
+    my $data = eval { decode_json($response->{content}) };
+    if ($@) {
+        print "JSON DECODE ERROR: $@\n";
+        return undef;
     }
+
+    return $data->{result};
 }
+
 # General Methods
 sub getMe { shift->api_request('getMe'); }
 sub logOut { shift->api_request('logOut'); }
 sub close { shift->api_request('close'); }
 
 # Update Methods
-sub getUpdates { shift->api_request('getUpdates', @_); }
-sub setWebhook { shift->api_request('setWebhook', @_); }
-sub deleteWebhook { shift->api_request('deleteWebhook', @_); }
+sub getUpdates { shift->api_request('getUpdates', {@_}); }
+sub setWebhook { shift->api_request('setWebhook', {@_}); }
+sub deleteWebhook { shift->api_request('deleteWebhook', {@_}); }
 sub getWebhookInfo { shift->api_request('getWebhookInfo'); }
 
 # Message Methods
-sub sendMessage { shift->api_request('sendMessage', @_); }
-sub forwardMessage { shift->api_request('forwardMessage', @_); }
-sub copyMessage { shift->api_request('copyMessage', @_); }
-sub sendPhoto { shift->api_request('sendPhoto', @_, 1); }
-sub sendAudio { shift->api_request('sendAudio', @_, 1); }
-sub sendDocument { shift->api_request('sendDocument', @_, 1); }
-sub sendVideo { shift->api_request('sendVideo', @_, 1); }
-sub sendAnimation { shift->api_request('sendAnimation', @_, 1); }
-sub sendVoice { shift->api_request('sendVoice', @_, 1); }
-sub sendVideoNote { shift->api_request('sendVideoNote', @_, 1); }
-sub sendMediaGroup { shift->api_request('sendMediaGroup', @_); }
-sub sendLocation { shift->api_request('sendLocation', @_); }
-sub editMessageLiveLocation { shift->api_request('editMessageLiveLocation', @_); }
-sub stopMessageLiveLocation { shift->api_request('stopMessageLiveLocation', @_); }
-sub sendVenue { shift->api_request('sendVenue', @_); }
-sub sendContact { shift->api_request('sendContact', @_); }
-sub sendPoll { shift->api_request('sendPoll', @_); }
-sub sendDice { shift->api_request('sendDice', @_); }
-sub sendChatAction { shift->api_request('sendChatAction', @_); }
+sub sendMessage { shift->api_request('sendMessage', {@_}); }
+sub forwardMessage { shift->api_request('forwardMessage', {@_}); }
+sub copyMessage { shift->api_request('copyMessage', {@_}); }
+sub sendPhoto { shift->api_request('sendPhoto', {@_}, 1); }
+sub sendAudio { shift->api_request('sendAudio', {@_}, 1); }
+sub sendDocument { shift->api_request('sendDocument', {@_}, 1); }
+sub sendVideo { shift->api_request('sendVideo', {@_}, 1); }
+sub sendAnimation { shift->api_request('sendAnimation', {@_}, 1); }
+sub sendVoice { shift->api_request('sendVoice', {@_}, 1); }
+sub sendVideoNote { shift->api_request('sendVideoNote', {@_}, 1); }
+sub sendMediaGroup { shift->api_request('sendMediaGroup', {@_}); }
+sub sendLocation { shift->api_request('sendLocation', {@_}); }
+sub editMessageLiveLocation { shift->api_request('editMessageLiveLocation', {@_}); }
+sub stopMessageLiveLocation { shift->api_request('stopMessageLiveLocation', {@_}); }
+sub sendVenue { shift->api_request('sendVenue', {@_}); }
+sub sendContact { shift->api_request('sendContact', {@_}); }
+sub sendPoll { shift->api_request('sendPoll', {@_}); }
+sub sendDice { shift->api_request('sendDice', {@_}); }
+sub sendChatAction { shift->api_request('sendChatAction', {@_}); }
 
 # Inline Mode
-sub answerInlineQuery { shift->api_request('answerInlineQuery', @_); }
-sub answerWebAppQuery { shift->api_request('answerWebAppQuery', @_); }
+sub answerInlineQuery { shift->api_request('answerInlineQuery', {@_}); }
+sub answerWebAppQuery { shift->api_request('answerWebAppQuery', {@_}); }
 
 # Message Editing
-sub editMessageText { shift->api_request('editMessageText', @_); }
-sub editMessageCaption { shift->api_request('editMessageCaption', @_); }
-sub editMessageMedia { shift->api_request('editMessageMedia', @_, 1); }
-sub editMessageReplyMarkup { shift->api_request('editMessageReplyMarkup', @_); }
-sub stopPoll { shift->api_request('stopPoll', @_); }
-sub deleteMessage { shift->api_request('deleteMessage', @_); }
+sub editMessageText { shift->api_request('editMessageText', {@_}); }
+sub editMessageCaption { shift->api_request('editMessageCaption', {@_}); }
+sub editMessageMedia { shift->api_request('editMessageMedia', {@_}, 1); }
+sub editMessageReplyMarkup { shift->api_request('editMessageReplyMarkup', {@_}); }
+sub stopPoll { shift->api_request('stopPoll', {@_}); }
+sub deleteMessage { shift->api_request('deleteMessage', {@_}); }
 
 # Chat Management
-sub banChatMember { shift->api_request('banChatMember', @_); }
-sub unbanChatMember { shift->api_request('unbanChatMember', @_); }
-sub restrictChatMember { shift->api_request('restrictChatMember', @_); }
-sub promoteChatMember { shift->api_request('promoteChatMember', @_); }
-sub setChatAdministratorCustomTitle { shift->api_request('setChatAdministratorCustomTitle', @_); }
-sub banChatSenderChat { shift->api_request('banChatSenderChat', @_); }
-sub unbanChatSenderChat { shift->api_request('unbanChatSenderChat', @_); }
-sub setChatPermissions { shift->api_request('setChatPermissions', @_); }
-sub exportChatInviteLink { shift->api_request('exportChatInviteLink', @_); }
-sub createChatInviteLink { shift->api_request('createChatInviteLink', @_); }
-sub editChatInviteLink { shift->api_request('editChatInviteLink', @_); }
-sub revokeChatInviteLink { shift->api_request('revokeChatInviteLink', @_); }
-sub approveChatJoinRequest { shift->api_request('approveChatJoinRequest', @_); }
-sub declineChatJoinRequest { shift->api_request('declineChatJoinRequest', @_); }
-sub setChatPhoto { shift->api_request('setChatPhoto', @_, 1); }
-sub deleteChatPhoto { shift->api_request('deleteChatPhoto', @_); }
-sub setChatTitle { shift->api_request('setChatTitle', @_); }
-sub setChatDescription { shift->api_request('setChatDescription', @_); }
-sub pinChatMessage { shift->api_request('pinChatMessage', @_); }
-sub unpinChatMessage { shift->api_request('unpinChatMessage', @_); }
-sub unpinAllChatMessages { shift->api_request('unpinAllChatMessages', @_); }
-sub leaveChat { shift->api_request('leaveChat', @_); }
-sub getChat { shift->api_request('getChat', @_); }
-sub getChatAdministrators { shift->api_request('getChatAdministrators', @_); }
-sub getChatMemberCount { shift->api_request('getChatMemberCount', @_); }
-sub getChatMember { shift->api_request('getChatMember', @_); }
-sub setChatStickerSet { shift->api_request('setChatStickerSet', @_); }
-sub deleteChatStickerSet { shift->api_request('deleteChatStickerSet', @_); }
+sub banChatMember { shift->api_request('banChatMember', {@_}); }
+sub unbanChatMember { shift->api_request('unbanChatMember', {@_}); }
+sub restrictChatMember { shift->api_request('restrictChatMember', {@_}); }
+sub promoteChatMember { shift->api_request('promoteChatMember', {@_}); }
+sub setChatAdministratorCustomTitle { shift->api_request('setChatAdministratorCustomTitle', {@_}); }
+sub banChatSenderChat { shift->api_request('banChatSenderChat', {@_}); }
+sub unbanChatSenderChat { shift->api_request('unbanChatSenderChat', {@_}); }
+sub setChatPermissions { shift->api_request('setChatPermissions', {@_}); }
+sub exportChatInviteLink { shift->api_request('exportChatInviteLink', {@_}); }
+sub createChatInviteLink { shift->api_request('createChatInviteLink', {@_}); }
+sub editChatInviteLink { shift->api_request('editChatInviteLink', {@_}); }
+sub revokeChatInviteLink { shift->api_request('revokeChatInviteLink', {@_}); }
+sub approveChatJoinRequest { shift->api_request('approveChatJoinRequest', {@_}); }
+sub declineChatJoinRequest { shift->api_request('declineChatJoinRequest', {@_}); }
+sub setChatPhoto { shift->api_request('setChatPhoto', {@_}, 1); }
+sub deleteChatPhoto { shift->api_request('deleteChatPhoto', {@_}); }
+sub setChatTitle { shift->api_request('setChatTitle', {@_}); }
+sub setChatDescription { shift->api_request('setChatDescription', {@_}); }
+sub pinChatMessage { shift->api_request('pinChatMessage', {@_}); }
+sub unpinChatMessage { shift->api_request('unpinChatMessage', {@_}); }
+sub unpinAllChatMessages { shift->api_request('unpinAllChatMessages', {@_}); }
+sub leaveChat { shift->api_request('leaveChat', {@_}); }
+sub getChat { shift->api_request('getChat', {@_}); }
+sub getChatAdministrators { shift->api_request('getChatAdministrators', {@_}); }
+sub getChatMemberCount { shift->api_request('getChatMemberCount', {@_}); }
+sub getChatMember { shift->api_request('getChatMember', {@_}); }
+sub setChatStickerSet { shift->api_request('setChatStickerSet', {@_}); }
+sub deleteChatStickerSet { shift->api_request('deleteChatStickerSet', {@_}); }
 
 # Callback Queries
-sub answerCallbackQuery { shift->api_request('answerCallbackQuery', @_); }
+sub answerCallbackQuery { shift->api_request('answerCallbackQuery', {@_}); }
 
 # Payments
-sub sendInvoice { shift->api_request('sendInvoice', @_); }
-sub createInvoiceLink { shift->api_request('createInvoiceLink', @_); }
-sub answerShippingQuery { shift->api_request('answerShippingQuery', @_); }
-sub answerPreCheckoutQuery { shift->api_request('answerPreCheckoutQuery', @_); }
+sub sendInvoice { shift->api_request('sendInvoice', {@_}); }
+sub createInvoiceLink { shift->api_request('createInvoiceLink', {@_}); }
+sub answerShippingQuery { shift->api_request('answerShippingQuery', {@_}); }
+sub answerPreCheckoutQuery { shift->api_request('answerPreCheckoutQuery', {@_}); }
 
 # Stickers
-sub sendSticker { shift->api_request('sendSticker', @_, 1); }
-sub getStickerSet { shift->api_request('getStickerSet', @_); }
-sub uploadStickerFile { shift->api_request('uploadStickerFile', @_, 1); }
-sub createNewStickerSet { shift->api_request('createNewStickerSet', @_, 1); }
-sub addStickerToSet { shift->api_request('addStickerToSet', @_, 1); }
-sub setStickerPositionInSet { shift->api_request('setStickerPositionInSet', @_); }
-sub deleteStickerFromSet { shift->api_request('deleteStickerFromSet', @_); }
-sub setStickerSetThumb { shift->api_request('setStickerSetThumb', @_, 1); }
+sub sendSticker { shift->api_request('sendSticker', {@_}, 1); }
+sub getStickerSet { shift->api_request('getStickerSet', {@_}); }
+sub uploadStickerFile { shift->api_request('uploadStickerFile', {@_}, 1); }
+sub createNewStickerSet { shift->api_request('createNewStickerSet', {@_}, 1); }
+sub addStickerToSet { shift->api_request('addStickerToSet', {@_}, 1); }
+sub setStickerPositionInSet { shift->api_request('setStickerPositionInSet', {@_}); }
+sub deleteStickerFromSet { shift->api_request('deleteStickerFromSet', {@_}); }
+sub setStickerSetThumb { shift->api_request('setStickerSetThumb', {@_}, 1); }
 
 # Games
-sub sendGame { shift->api_request('sendGame', @_); }
-sub setGameScore { shift->api_request('setGameScore', @_); }
-sub getGameHighScores { shift->api_request('getGameHighScores', @_); }
+sub sendGame { shift->api_request('sendGame', {@_}); }
+sub setGameScore { shift->api_request('setGameScore', {@_}); }
+sub getGameHighScores { shift->api_request('getGameHighScores', {@_}); }
 
 # Bot Commands
-sub setMyCommands { shift->api_request('setMyCommands', @_); }
-sub deleteMyCommands { shift->api_request('deleteMyCommands', @_); }
-sub getMyCommands { shift->api_request('getMyCommands', @_); }
-sub setChatMenuButton { shift->api_request('setChatMenuButton', @_); }
-sub getChatMenuButton { shift->api_request('getChatMenuButton', @_); }
-sub setMyDefaultAdministratorRights { shift->api_request('setMyDefaultAdministratorRights', @_); }
-sub getMyDefaultAdministratorRights { shift->api_request('getMyDefaultAdministratorRights', @_); }
+sub setMyCommands { shift->api_request('setMyCommands', {@_}); }
+sub deleteMyCommands { shift->api_request('deleteMyCommands', {@_}); }
+sub getMyCommands { shift->api_request('getMyCommands', {@_}); }
+sub setChatMenuButton { shift->api_request('setChatMenuButton', {@_}); }
+sub getChatMenuButton { shift->api_request('getChatMenuButton', {@_}); }
+sub setMyDefaultAdministratorRights { shift->api_request('setMyDefaultAdministratorRights', {@_}); }
+sub getMyDefaultAdministratorRights { shift->api_request('getMyDefaultAdministratorRights', {@_}); }
 
 1;
 __END__

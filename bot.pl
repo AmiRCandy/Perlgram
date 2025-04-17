@@ -64,7 +64,6 @@ my $cli = Perlgram::CLI->new(
             my ($self, $message) = @_;
             my $chat_id = $message->{chat}{id};
             my $text = $message->{text} || '';
-
             eval {
                 if ($text =~ /^\/start/) {
                     my $result = $self->{bot}->sendMessage(
