@@ -8,7 +8,7 @@ use Carp qw(croak);
 use Telegram::BotAPI::Error;
 
 our $VERSION = '0.02';
-our $AUTHORITY = 'cpan:YOURCPANID'; # Replace with your CPAN ID
+our $AUTHORITY = 'cpan:AMIRCANDY'; # Replace with your CPAN ID
 
 sub new {
     my ($class, %args) = @_;
