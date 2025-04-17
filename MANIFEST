@@ -160,12 +160,12 @@ blib/arch/auto/Perlgram/.exists
 blib/bin/.exists
 blib/lib/.exists
 blib/lib/auto/Perlgram/.exists
-blib/lib/Telegram/Perlgram.pm
-blib/lib/Telegram/Perlgram/CLI.pm
-blib/lib/Telegram/Perlgram/Error.pm
-blib/lib/Telegram/Perlgram/Types.pm
-blib/lib/Telegram/Perlgram/Update.pm
-blib/lib/Telegram/Perlgram/Webhook.pm
+blib/lib/Perlgram.pm
+blib/lib/Perlgram/CLI.pm
+blib/lib/Perlgram/Error.pm
+blib/lib/Perlgram/Types.pm
+blib/lib/Perlgram/Update.pm
+blib/lib/Perlgram/Webhook.pm
 blib/man1/.exists
 blib/man3/.exists
 blib/script/.exists
@@ -173,15 +173,15 @@ blib/script/perlgram-cli.bat
 blib/script/perlgram-cli.pl
 blib/script/perlgram-webhook.bat
 blib/script/perlgram-webhook.pl
-Changes				LICENSE MANIFEST Makefile.PL README.md bin/telegram-bot-cli.pl bin/telegram-bot-webhook.pl examples/simple_bot.pl examples/webhook_bot.pl lib/Telegram/Perlgram.pm lib/Telegram/Perlgram/CLI.pm lib/Telegram/Perlgram/Error.pm lib/Telegram/Perlgram/Types.pm lib/Telegram/Perlgram/Update.pm lib/Telegram/Perlgram/Webhook.pm t/00-load.t t/01-basic.t t/02-webhook.t t/03-cli.t
+Changes				LICENSE MANIFEST Makefile.PL README.md bin/telegram-bot-cli.pl bin/telegram-bot-webhook.pl examples/simple_bot.pl examples/webhook_bot.pl lib/Perlgram.pm lib/Perlgram/CLI.pm lib/Perlgram/Error.pm lib/Perlgram/Types.pm lib/Perlgram/Update.pm lib/Perlgram/Webhook.pm t/00-load.t t/01-basic.t t/02-webhook.t t/03-cli.t
 examples/simple_bot.pl
 examples/webhook_bot.pl
-lib/Telegram/Perlgram.pm
-lib/Telegram/Perlgram/CLI.pm
-lib/Telegram/Perlgram/Error.pm
-lib/Telegram/Perlgram/Types.pm
-lib/Telegram/Perlgram/Update.pm
-lib/Telegram/Perlgram/Webhook.pm
+lib/Perlgram.pm
+lib/Perlgram/CLI.pm
+lib/Perlgram/Error.pm
+lib/Perlgram/Types.pm
+lib/Perlgram/Update.pm
+lib/Perlgram/Webhook.pm
 LICENSE
 Makefile
 Makefile.PL
