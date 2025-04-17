@@ -100,7 +100,8 @@ sub api_request {
         }
     } else {
         my $error_detail = $response->decoded_content || ($response->status_line || "Unknown error");
-        $self->{logger}->error("HTTP error: $error_detail (method: $method)");
+        my $er = $response->decoded_content;
+        $self->{logger}->error("HTTP error: $error_detail (method: $method) $er");
         my $error = Perlgram::Error->new(
             message => "HTTP error: $error_detail",
             code    => $response->code || 500,
