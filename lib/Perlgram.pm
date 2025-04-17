@@ -7,7 +7,7 @@ use URI::Escape;
 use Log::Log4perl qw(:easy);
 use Perlgram::Error;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our $AUTHORITY = 'cpan:AMIRCANDY'; # Replace with your CPAN ID
 
 sub new {
