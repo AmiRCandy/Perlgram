@@ -2,25 +2,25 @@
 use strict;
 use warnings;
 use Mojolicious::Commands;
-use Telegram::BotAPI;
-use Telegram::BotAPI::Webhook;
+use Perlgram;
+use Perlgram::Webhook;
 use JSON qw(encode_json);
 
 my $token = $ENV{TELEGRAM_BOT_TOKEN} || die "Set TELEGRAM_BOT_TOKEN\n";
-my $bot = Telegram::BotAPI->new(token => $token);
+my $bot = Perlgram->new(token => $token);
 
 # Set webhook (run this once)
 # $bot->setWebhook(url => 'https://yourdomain.com/webhook/YOUR_BOT_TOKEN');
 
 # Override Webhook startup to include custom handlers
-package Telegram::BotAPI::Webhook;
+package Perlgram::Webhook;
 use Mojo::Base 'Mojolicious';
 
 sub startup {
     my $self = shift;
     my $config = $self->plugin('Config');
 
-    my $bot = Telegram::BotAPI->new(
+    my $bot = Perlgram->new(
         token => $config->{token} || die "Token required in config",
     );
 
@@ -36,7 +36,7 @@ sub startup {
 
         my $update = $c->req->json;
         if ($update) {
-            my $handler = Telegram::BotAPI::Update->new(
+            my $handler = Perlgram::Update->new(
                 bot => $self->bot,
                 update => $update,
                 handlers => {
@@ -130,4 +130,4 @@ sub startup {
 }
 
 package main;
-Mojolicious::Commands->start_app('Telegram::BotAPI::Webhook');
+Mojolicious::Commands->start_app('Perlgram::Webhook');

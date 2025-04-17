@@ -2,11 +2,11 @@ use strict;
 use warnings;
 use Test::More;
 
-use_ok('Telegram::BotAPI');
-use_ok('Telegram::BotAPI::Update');
-use_ok('Telegram::BotAPI::Webhook');
-use_ok('Telegram::BotAPI::CLI');
-use_ok('Telegram::BotAPI::Types');
-use_ok('Telegram::BotAPI::Error');
+use_ok('Perlgram');
+use_ok('Perlgram::Update');
+use_ok('Perlgram::Webhook');
+use_ok('Perlgram::CLI');
+use_ok('Perlgram::Types');
+use_ok('Perlgram::Error');
 
 done_testing();

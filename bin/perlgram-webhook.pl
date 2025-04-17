@@ -3,4 +3,4 @@ use strict;
 use warnings;
 use Mojolicious::Commands;
 
-Mojolicious::Commands->start_app('Telegram::BotAPI::Webhook');
+Mojolicious::Commands->start_app('Perlgram::Webhook');

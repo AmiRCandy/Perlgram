@@ -1,11 +1,11 @@
-package Telegram::BotAPI;
+package Perlgram;
 use strict;
 use warnings;
 use LWP::UserAgent;
 use JSON qw(encode_json decode_json);
 use Log::Log4perl qw(:easy);
 use Carp qw(croak);
-use Telegram::BotAPI::Error;
+use Perlgram::Error;
 
 our $VERSION = '0.02';
 our $AUTHORITY = 'cpan:AMIRCANDY'; # Replace with your CPAN ID
@@ -46,14 +46,14 @@ sub api_request {
             return $data->{result};
         } else {
             $self->{logger}->error("API error: $data->{description} (code: $data->{error_code})");
-            croak Telegram::BotAPI::Error->new(
+            croak Perlgram::Error->new(
                 message => $data->{description},
                 code    => $data->{error_code},
             );
         }
     } else {
         $self->{logger}->error("HTTP error: " . $response->status_line);
-        croak Telegram::BotAPI::Error->new(
+        croak Perlgram::Error->new(
             message => "HTTP error: " . $response->status_line,
             code    => $response->code,
         );
@@ -172,7 +172,7 @@ __END__
 
 =head1 NAME
 
-Telegram::BotAPI - Comprehensive Perl interface to the Telegram Bot API
+Perlgram - Comprehensive Perl interface to the Telegram Bot API
 
 =head1 VERSION
 
@@ -180,8 +180,8 @@ Version 0.02
 
 =head1 SYNOPSIS
 
-    use Telegram::BotAPI;
-    my $bot = Telegram::BotAPI->new(token => 'YOUR_BOT_TOKEN');
+    use Perlgram;
+    my $bot = Perlgram->new(token => 'YOUR_BOT_TOKEN');
     my $user = $bot->getMe();
     print "Bot username: $user->{username}\n";
 
@@ -197,7 +197,7 @@ Version 0.02
 
 =head1 DESCRIPTION
 
-C<Telegram::BotAPI> is a Perl module for interacting with the Telegram Bot API. It supports all major API methods, including messaging, inline queries, payments, stickers, and games. The module can operate in webhook (real-time updates via HTTPS) or CLI (polling via C<getUpdates>) modes, making it suitable for both production and development environments.
+C<Perlgram> is a Perl module for interacting with the Telegram Bot API. It supports all major API methods, including messaging, inline queries, payments, stickers, and games. The module can operate in webhook (real-time updates via HTTPS) or CLI (polling via C<getUpdates>) modes, making it suitable for both production and development environments.
 
 This module is designed to be CPAN-compliant and can be installed via C<cpan> or C<cpanm>. It includes scripts for running bots and examples for quick setup.
 
@@ -275,7 +275,7 @@ Bot command methods.
 
 To install via CPAN:
 
-    cpan Telegram::BotAPI
+    cpan Perlgram
 
 Or, clone from GitHub and build manually:
 
@@ -300,4 +300,4 @@ This library is free software; you can redistribute it and/or modify it under th
 
 =head1 SEE ALSO
 
-L<https://core.telegram.org/bots/api>, L<Telegram::BotAPI::Webhook>, L<Telegram::BotAPI::CLI>
+L<https://core.telegram.org/bots/api>, L<Perlgram::Webhook>, L<Perlgram::CLI>

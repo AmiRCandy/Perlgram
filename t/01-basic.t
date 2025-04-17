@@ -1,11 +1,11 @@
 use strict;
 use warnings;
 use Test::More;
-use Telegram::BotAPI;
+use Perlgram;
 
 SKIP: {
     skip "Set TELEGRAM_TEST_TOKEN for API tests", 6 unless $ENV{TELEGRAM_TEST_TOKEN};
-    my $bot = Telegram::BotAPI->new(token => $ENV{TELEGRAM_TEST_TOKEN});
+    my $bot = Perlgram->new(token => $ENV{TELEGRAM_TEST_TOKEN});
 
     my $user = $bot->getMe();
     ok($user->{id}, "Got bot ID");

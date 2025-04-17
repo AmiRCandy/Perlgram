@@ -1,4 +1,4 @@
-package Telegram::BotAPI::Types;
+package Perlgram::Types;
 use strict;
 use warnings;
 
@@ -165,7 +165,7 @@ __END__
 
 =head1 NAME
 
-Telegram::BotAPI::Types - Data structures for Telegram API objects
+Perlgram::Types - Data structures for Telegram API objects
 
 =head1 DESCRIPTION
 

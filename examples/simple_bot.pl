@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Telegram::BotAPI;
-use Telegram::BotAPI::CLI;
+use Perlgram;
+use Perlgram::CLI;
 use JSON qw(encode_json);
 
 my $token = $ENV{TELEGRAM_BOT_TOKEN} || die "Set TELEGRAM_BOT_TOKEN\n";
-my $bot = Telegram::BotAPI->new(token => $token);
+my $bot = Perlgram->new(token => $token);
 
 # Set bot commands
 $bot->setMyCommands(
@@ -18,7 +18,7 @@ $bot->setMyCommands(
 );
 
 # Define custom handlers
-my $cli = Telegram::BotAPI::CLI->new(
+my $cli = Perlgram::CLI->new(
     bot => $bot,
     handlers => {
         message => sub {

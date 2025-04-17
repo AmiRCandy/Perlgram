@@ -1,9 +1,9 @@
-package Telegram::BotAPI::Update;
+package Perlgram::Update;
 use strict;
 use warnings;
 use Carp qw(croak);
 use JSON qw(encode_json);
-use Telegram::BotAPI::Types;
+use Perlgram::Types;
 
 sub new {
     my ($class, %args) = @_;
@@ -156,15 +156,15 @@ __END__
 
 =head1 NAME
 
-Telegram::BotAPI::Update - Process Telegram updates with custom handlers
+Perlgram::Update - Process Telegram updates with custom handlers
 
 =head1 SYNOPSIS
 
-    use Telegram::BotAPI;
-    use Telegram::BotAPI::Update;
+    use Perlgram;
+    use Perlgram::Update;
 
-    my $bot = Telegram::BotAPI->new(token => 'YOUR_BOT_TOKEN');
-    my $update_handler = Telegram::BotAPI::Update->new(
+    my $bot = Perlgram->new(token => 'YOUR_BOT_TOKEN');
+    my $update_handler = Perlgram::Update->new(
         bot => $bot,
         update => $update_data,
         handlers => {
@@ -201,7 +201,7 @@ Telegram::BotAPI::Update - Process Telegram updates with custom handlers
 
 =head1 DESCRIPTION
 
-C<Telegram::BotAPI::Update> processes Telegram update types, such as messages, inline queries, callback queries, and more. Users can define custom handlers for each update type via the constructor or C<register_handler>. Default handlers are provided for some update types but can be overridden.
+C<Perlgram::Update> processes Telegram update types, such as messages, inline queries, callback queries, and more. Users can define custom handlers for each update type via the constructor or C<register_handler>. Default handlers are provided for some update types but can be overridden.
 
 =head1 METHODS
 

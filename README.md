@@ -1,4 +1,4 @@
-# Telegram::BotAPI
+# Perlgram
 
 A comprehensive Perl module for creating Telegram bots, supporting both webhook and CLI modes.
 
@@ -7,7 +7,7 @@ A comprehensive Perl module for creating Telegram bots, supporting both webhook 
 Install via CPAN:
 
 ```bash
-cpan Telegram::BotAPI
+cpan Perlgram
 ```
 
 Or, install manually from GitHub:
@@ -26,12 +26,12 @@ make install
 ### CLI Mode with Custom Handlers
 
 ```perl
-use Telegram::BotAPI;
-use Telegram::BotAPI::CLI;
+use Perlgram;
+use Perlgram::CLI;
 use JSON qw(encode_json);
 
-my $bot = Telegram::BotAPI->new(token => 'YOUR_BOT_TOKEN');
-my $cli = Telegram::BotAPI::CLI->new(
+my $bot = Perlgram->new(token => 'YOUR_BOT_TOKEN');
+my $cli = Perlgram::CLI->new(
     bot => $bot,
     handlers => {
         message => sub {
@@ -73,8 +73,8 @@ perl bin/telegram-bot-webhook.pl daemon
 Set the webhook:
 
 ```perl
-use Telegram::BotAPI;
-my $bot = Telegram::BotAPI->new(token => 'YOUR_BOT_TOKEN');
+use Perlgram;
+my $bot = Perlgram->new(token => 'YOUR_BOT_TOKEN');
 $bot->setWebhook(url => 'https://yourdomain.com/webhook/YOUR_BOT_TOKEN');
 ```
 

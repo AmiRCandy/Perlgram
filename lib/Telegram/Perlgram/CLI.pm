@@ -1,8 +1,8 @@
-package Telegram::BotAPI::CLI;
+package Perlgram::CLI;
 use strict;
 use warnings;
-use Telegram::BotAPI;
-use Telegram::BotAPI::Update;
+use Perlgram;
+use Perlgram::Update;
 use Carp qw(croak);
 
 sub new {
@@ -28,7 +28,7 @@ sub run {
             );
 
             for my $update (@$updates) {
-                my $handler = Telegram::BotAPI::Update->new(
+                my $handler = Perlgram::Update->new(
                     bot    => $self->{bot},
                     update => $update,
                 );
@@ -48,12 +48,12 @@ __END__
 
 =head1 NAME
 
-Telegram::BotAPI::CLI - CLI polling for Telegram bots
+Perlgram::CLI - CLI polling for Telegram bots
 
 =head1 SYNOPSIS
 
-    use Telegram::BotAPI::CLI;
-    my $cli = Telegram::BotAPI::CLI->new(bot => $bot);
+    use Perlgram::CLI;
+    my $cli = Perlgram::CLI->new(bot => $bot);
     $cli->run();
 
 =head1 DESCRIPTION

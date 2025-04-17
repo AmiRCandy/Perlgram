@@ -1,16 +1,16 @@
-package Telegram::BotAPI::Webhook;
+package Perlgram::Webhook;
 use strict;
 use warnings;
 use Mojo::Base 'Mojolicious';
-use Telegram::BotAPI;
-use Telegram::BotAPI::Update;
+use Perlgram;
+use Perlgram::Update;
 use Carp qw(croak);
 
 sub startup {
     my $self = shift;
     my $config = $self->plugin('Config');
 
-    my $bot = Telegram::BotAPI->new(
+    my $bot = Perlgram->new(
         token => $config->{token} || croak("Token required in config"),
     );
 
@@ -26,7 +26,7 @@ sub startup {
 
         my $update = $c->req->json;
         if ($update) {
-            my $handler = Telegram::BotAPI::Update->new(
+            my $handler = Perlgram::Update->new(
                 bot    => $self->bot,
                 update => $update,
             );
@@ -46,12 +46,12 @@ __END__
 
 =head1 NAME
 
-Telegram::BotAPI::Webhook - Webhook server for Telegram bots
+Perlgram::Webhook - Webhook server for Telegram bots
 
 =head1 SYNOPSIS
 
     use Mojolicious::Commands;
-    Mojolicious::Commands->start_app('Telegram::BotAPI::Webhook');
+    Mojolicious::Commands->start_app('Perlgram::Webhook');
 
 =head1 DESCRIPTION
 

@@ -1,4 +1,4 @@
-package Telegram::BotAPI::Error;
+package Perlgram::Error;
 use strict;
 use warnings;
 use overload '""' => 'stringify';
@@ -26,12 +26,12 @@ __END__
 
 =head1 NAME
 
-Telegram::BotAPI::Error - Custom error class for Telegram API
+Perlgram::Error - Custom error class for Telegram API
 
 =head1 SYNOPSIS
 
-    use Telegram::BotAPI::Error;
-    die Telegram::BotAPI::Error->new(message => "API error", code => 400);
+    use Perlgram::Error;
+    die Perlgram::Error->new(message => "API error", code => 400);
 
 =head1 AUTHOR
 
