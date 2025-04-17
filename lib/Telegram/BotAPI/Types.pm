@@ -173,7 +173,7 @@ Defines Perl hash structures for Telegram API objects, including User, Chat, Mes
 
 =head1 AUTHOR
 
-Your Name, E<lt>your.email@example.comE<gt>
+AmiRCandy, E<lt>amirhosen.1385.cmo@gmail.comE<gt>
 
 =head1 LICENSE
 

@@ -279,8 +279,8 @@ To install via CPAN:
 
 Or, clone from GitHub and build manually:
 
-    git clone https://github.com/yourusername/Telegram-BotAPI.git
-    cd Telegram-BotAPI
+    git clone https://github.com/AmiRCandy/Perlgram.git
+    cd Perlgram
     perl Makefile.PL
     make
     make test
@@ -288,11 +288,11 @@ Or, clone from GitHub and build manually:
 
 =head1 AUTHOR
 
-Your Name, E<lt>your.email@example.comE<gt>
+AmiRCandy, E<lt>amirhosen.1385.cmo@gmail.comE<gt>
 
 =head1 BUGS
 
-Please report bugs to the GitHub issue tracker: L<https://github.com/yourusername/Telegram-BotAPI/issues>
+Please report bugs to the GitHub issue tracker: L<https://github.com/AmiRCandy/Perlgram/issues>
 
 =head1 LICENSE
 

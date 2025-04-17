@@ -13,8 +13,8 @@ cpan Telegram::BotAPI
 Or, install manually from GitHub:
 
 ```bash
-git clone https://github.com/yourusername/Telegram-BotAPI.git
-cd Telegram-BotAPI
+git clone https://github.com/AmiRCandy/Perlgram.git
+cd Perlgram
 perl Makefile.PL
 make
 make test
@@ -134,4 +134,4 @@ This module is licensed under the Artistic License 2.0. See the `LICENSE` file f
 ## See Also
 
 - Telegram Bot API: https://core.telegram.org/bots/api
-- CPAN: https://metacpan.org/dist/Telegram-BotAPI
+- CPAN: https://metacpan.org/dist/Perlgram
