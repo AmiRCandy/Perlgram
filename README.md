@@ -23,20 +23,42 @@ make install
 
 ## Usage
 
-### CLI Mode
+### CLI Mode with Custom Handlers
 
 ```perl
 use Telegram::BotAPI;
 use Telegram::BotAPI::CLI;
+use JSON qw(encode_json);
 
 my $bot = Telegram::BotAPI->new(token => 'YOUR_BOT_TOKEN');
-my $cli = Telegram::BotAPI::CLI->new(bot => $bot);
+my $cli = Telegram::BotAPI::CLI->new(
+    bot => $bot,
+    handlers => {
+        message => sub {
+            my ($self, $message) = @_;
+            my $chat_id = $message->{chat}{id};
+            my $text = $message->{text} || '';
+            $self->{bot}->sendMessage(
+                chat_id => $chat_id,
+                text => "You said: $text",
+            );
+        },
+        callback_query => sub {
+            my ($self, $callback_query) = @_;
+            my $query_id = $callback_query->{id};
+            $self->{bot}->answerCallbackQuery(
+                callback_query_id => $query_id,
+                text => 'Button clicked!',
+            );
+        },
+    },
+);
 $cli->run();
 ```
 
 ### Webhook Mode
 
-Create `config.conf` in the project directory:
+Create `config.conf`:
 
 ```perl
 { token => 'YOUR_BOT_TOKEN' }
@@ -58,7 +80,7 @@ $bot->setWebhook(url => 'https://yourdomain.com/webhook/YOUR_BOT_TOKEN');
 
 ### Example
 
-Run the example CLI bot:
+Run the example CLI bot with custom handlers:
 
 ```bash
 export TELEGRAM_BOT_TOKEN='YOUR_BOT_TOKEN'
@@ -68,8 +90,8 @@ perl examples/simple_bot.pl
 ## Features
 
 - Supports all Telegram Bot API methods (messaging, inline queries, payments, stickers, games, etc.).
-- Handles all update types (messages, callback queries, polls, etc.).
-- Webhook and polling modes for flexibility.
+- Customizable update handling for all update types.
+- Webhook and polling modes.
 - Robust error handling and logging.
 - CPAN-compliant for easy distribution.
 
@@ -89,7 +111,7 @@ Run tests:
 make test
 ```
 
-For full API tests, set environment variables:
+For full API	tests, set environment variables:
 
 ```bash
 export TELEGRAM_TEST_TOKEN='YOUR_TEST_TOKEN'
@@ -99,11 +121,11 @@ prove -r t/
 
 ## Contributing
 
-Contributions are welcome! Please submit pull requests or issues to the GitHub repository: https://github.com/yourusername/Telegram-BotAPI
+Contributions are welcome! Please submit pull requests or issues to the GitHub repository: https://github.com/AmiRCandy/Perlgram
 
 ## Author
 
-Your Name, <your.email@example.com>
+AmiRCandy, <amirhosen.1385.cmo@gmail.com>
 
 ## License
 
