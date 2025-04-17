@@ -1,7 +1,7 @@
 package Perlgram::Error;
 use strict;
 use warnings;
-use Carp qw(croak);
+use Carp;
 
 sub new {
     my ($class, %args) = @_;
@@ -15,7 +15,7 @@ sub new {
 sub message { shift->{message} }
 sub code    { shift->{code} }
 
-sub croak {
+sub throw {
     my $self = shift;
     Carp::croak("Perlgram::Error: $self->{message} (code: $self->{code})");
 }
@@ -30,7 +30,7 @@ Perlgram::Error - Error handling for Perlgram
 =head1 SYNOPSIS
 
     use Perlgram::Error;
-    Perlgram::Error->new(message => "API error", code => 400)->croak;
+    Perlgram::Error->new(message => "API error", code => 400)->throw;
 
 =head1 DESCRIPTION
 
@@ -52,7 +52,7 @@ Returns the error message.
 
 Returns the error code.
 
-=item croak
+=item throw
 
 Throws the error using Carp::croak, including the message and code.
 

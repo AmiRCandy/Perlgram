@@ -11,11 +11,15 @@ our $AUTHORITY = 'cpan:AMIRCANDY'; # Replace with your CPAN ID
 
 sub new {
     my ($class, %args) = @_;
+    unless ($args{token}) {
+        Perlgram::Error->new(message => "Token required")->throw;
+    }
     my $self = {
-        token      => $args{token} || die "Token required",
+        token      => $args{token},
         api_url    => $args{api_url} || 'https://api.telegram.org/bot',
         ua         => LWP::UserAgent->new(timeout => 30),
         logger     => Log::Log4perl->get_logger(__PACKAGE__),
+        on_error   => $args{on_error}, # Optional error callback
     };
     bless $self, $class;
     $self->_init_logger unless Log::Log4perl::initialized();
@@ -23,7 +27,7 @@ sub new {
 }
 
 sub _init_logger {
-    Log::Log4perl->easy_init($INFO);
+    Log::Log4perl->easy_init($Log::Log4perl::DEBUG);
 }
 
 sub api_request {
@@ -31,34 +35,83 @@ sub api_request {
     my $url = $self->{api_url} . $self->{token} . "/$method";
 
     my $response;
-    if ($multipart) {
-        $response = $self->{ua}->post($url, Content_Type => 'multipart/form-data', Content => $params);
-    } elsif ($params && ref($params) eq 'HASH') {
-        $response = $self->{ua}->post($url, Content => encode_json($params));
-    } else {
-        $response = $self->{ua}->get($url);
+    eval {
+        if ($multipart) {
+            $response = $self->{ua}->post($url, Content_Type => 'multipart/form-data', Content => $params);
+        } elsif ($params && ref($params) eq 'HASH') {
+            $response = $self->{ua}->post($url, Content => encode_json($params));
+        } else {
+            $response = $self->{ua}->get($url);
+        }
+    };
+    if ($@) {
+        $self->{logger}->error("Connection error: $@ (method: $method)");
+        my $error = Perlgram::Error->new(
+            message => "Connection error: $@",
+            code    => 500,
+        );
+        if ($self->{on_error}) {
+            $self->{on_error}->($error);
+            return undef;
+        }
+        $error->throw;
+    }
+
+    unless ($response && ref($response) eq 'HTTP::Response') {
+        $self->{logger}->error("Invalid response object (method: $method)");
+        my $error = Perlgram::Error->new(
+            message => "Invalid response from server",
+            code    => 500,
+        );
+        if ($self->{on_error}) {
+            $self->{on_error}->($error);
+            return undef;
+        }
+        $error->throw;
     }
 
     if ($response->is_success) {
-        my $data = decode_json($response->decoded_content);
+        my $data = eval { decode_json($response->decoded_content) };
+        if ($@) {
+            $self->{logger}->error("JSON decode error: $@ (method: $method)");
+            my $error = Perlgram::Error->new(
+                message => "JSON decode error: $@",
+                code    => 500,
+            );
+            if ($self->{on_error}) {
+                $self->{on_error}->($error);
+                return undef;
+            }
+            $error->throw;
+        }
         if ($data->{ok}) {
             return $data->{result};
         } else {
-            $self->{logger}->error("API error: $data->{description} (code: $data->{error_code})");
-            Perlgram::Error->new(
-                message => "API error: $data->{description}",
+            $self->{logger}->error("API error: $data->{description} (code: $data->{error_code}, method: $method)");
+            my $error = Perlgram::Error->new(
+                message => "API error: $data->{description} (method: $method)",
                 code    => $data->{error_code},
-            )->croak;
+            );
+            if ($self->{on_error}) {
+                $self->{on_error}->($error);
+                return undef;
+            }
+            $error->throw;
         }
     } else {
-        $self->{logger}->error("HTTP error: " . $response->status_line);
-        Perlgram::Error->new(
-            message => "HTTP error: " . $response->status_line,
-            code    => $response->code,
-        )->croak;
+        my $error_detail = $response->decoded_content || ($response->status_line || "Unknown error");
+        $self->{logger}->error("HTTP error: $error_detail (method: $method)");
+        my $error = Perlgram::Error->new(
+            message => "HTTP error: $error_detail",
+            code    => $response->code || 500,
+        );
+        if ($self->{on_error}) {
+            $self->{on_error}->($error);
+            return undef;
+        }
+        $error->throw;
     }
 }
-
 # General Methods
 sub getMe { shift->api_request('getMe'); }
 sub logOut { shift->api_request('logOut'); }
