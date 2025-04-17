@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME            => 'Perlgram',
-    VERSION_FROM    => 'lib/Perlgram/Perlgram.pm',
+    VERSION_FROM    => 'lib/Perlgram.pm',
     ABSTRACT        => 'Perl interface to the Telegram Bot API',
     AUTHOR          => 'AmiRCandy <amirhosen.1385.cmo@gmail.com',
     LICENSE         => 'artistic_2',
