@@ -25,6 +25,7 @@ sub run {
             my $updates = $self->{bot}->getUpdates(
                 offset  => $self->{offset} + 1,
                 timeout => $self->{timeout},
+                limit => 100
             );
 
             for my $update (@$updates) {
