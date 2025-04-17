@@ -1,3 +1,5 @@
+0.03 2025-04-15 - Request module changed from Useragent to HTTP Tiny
+
 0.02 2025-04-15 - CPAN-compliant distribution - Added MANIFEST, MANIFEST.SKIP, LICENSE - Enhanced documentation and tests - Included executable scripts in bin/
 
 0.01 2025-04-15 - Initial release

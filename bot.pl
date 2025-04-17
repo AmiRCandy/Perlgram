@@ -26,6 +26,7 @@ eval {
         },
     );
     my $user = $bot->getMe();
+    $bot->sendMessage(chat_id => 5285490910 , text => "Hi");
     if ($user) {
         print "Connected to bot: $user->{username}\n";
     } else {

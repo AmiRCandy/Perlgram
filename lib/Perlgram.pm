@@ -1,7 +1,7 @@
 package Perlgram;
 use strict;
 use warnings;
-use LWP::UserAgent;
+use HTTP::Tiny;
 use JSON qw(encode_json decode_json);
 use Log::Log4perl qw(:easy);
 use Perlgram::Error;
@@ -17,7 +17,7 @@ sub new {
     my $self = {
         token      => $args{token},
         api_url    => $args{api_url} || 'https://api.telegram.org/bot',
-        ua         => LWP::UserAgent->new(timeout => 30),
+        ua         => HTTP::Tiny->new(timeout => 30),
         logger     => Log::Log4perl->get_logger(__PACKAGE__),
         on_error   => $args{on_error}, # Optional error callback
     };
@@ -33,17 +33,34 @@ sub _init_logger {
 sub api_request {
     my ($self, $method, $params, $multipart) = @_;
     my $url = $self->{api_url} . $self->{token} . "/$method";
+    $self->{logger}->debug("Preparing to send request to $url");
+    
+    # Log the request parameters
+    if ($params) {
+        $self->{logger}->debug("Request params: " . (ref $params eq 'HASH' ? encode_json($params) : $params));
+    }
 
     my $response;
     eval {
         if ($multipart) {
-            $response = $self->{ua}->post($url, Content_Type => 'multipart/form-data', Content => $params);
+            $response = $self->{ua}->post_form(
+                $url,
+                $params,
+                { content_type => 'multipart/form-data' }
+            );
         } elsif ($params && ref($params) eq 'HASH') {
-            $response = $self->{ua}->post($url, Content => encode_json($params));
+            $response = $self->{ua}->post(
+                $url,
+                {
+                    content_type => 'application/json',
+                    content      => encode_json($params),
+                }
+            );
         } else {
             $response = $self->{ua}->get($url);
         }
     };
+
     if ($@) {
         $self->{logger}->error("Connection error: $@ (method: $method)");
         my $error = Perlgram::Error->new(
@@ -70,8 +87,8 @@ sub api_request {
         $error->throw;
     }
 
-    if ($response->is_success) {
-        my $data = eval { decode_json($response->decoded_content) };
+    if ($response->{success}) {
+        my $data = eval { decode_json($response->{content}) };
         if ($@) {
             $self->{logger}->error("JSON decode error: $@ (method: $method)");
             my $error = Perlgram::Error->new(
@@ -99,12 +116,11 @@ sub api_request {
             $error->throw;
         }
     } else {
-        my $error_detail = $response->decoded_content || ($response->status_line || "Unknown error");
-        my $er = $response->decoded_content;
-        $self->{logger}->error("HTTP error: $error_detail (method: $method) $er");
+        my $error_detail = $response->{content} || ($response->{status} || "Unknown error");
+        $self->{logger}->error("HTTP error: $error_detail (method: $method)");
         my $error = Perlgram::Error->new(
             message => "HTTP error: $error_detail",
-            code    => $response->code || 500,
+            code    => $response->{status} || 500,
         );
         if ($self->{on_error}) {
             $self->{on_error}->($error);

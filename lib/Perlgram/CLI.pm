@@ -25,8 +25,12 @@ sub run {
             my $updates = $self->{bot}->getUpdates(
                 offset  => $self->{offset} + 1,
                 timeout => $self->{timeout},
-                limit => 100
             );
+
+            # Add debug logging
+            require Data::Dumper;
+            print "Raw updates received:\n";
+            print Data::Dumper::Dumper($updates);
 
             for my $update (@$updates) {
                 my $handler = Perlgram::Update->new(
