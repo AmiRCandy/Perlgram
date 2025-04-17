@@ -4,7 +4,6 @@ use warnings;
 use LWP::UserAgent;
 use JSON qw(encode_json decode_json);
 use Log::Log4perl qw(:easy);
-use Carp qw(croak);
 use Perlgram::Error;
 
 our $VERSION = '0.02';
@@ -13,7 +12,7 @@ our $AUTHORITY = 'cpan:AMIRCANDY'; # Replace with your CPAN ID
 sub new {
     my ($class, %args) = @_;
     my $self = {
-        token      => $args{token} || croak("Token required"),
+        token      => $args{token} || die "Token required",
         api_url    => $args{api_url} || 'https://api.telegram.org/bot',
         ua         => LWP::UserAgent->new(timeout => 30),
         logger     => Log::Log4perl->get_logger(__PACKAGE__),
@@ -46,17 +45,17 @@ sub api_request {
             return $data->{result};
         } else {
             $self->{logger}->error("API error: $data->{description} (code: $data->{error_code})");
-            croak Perlgram::Error->new(
-                message => $data->{description},
+            Perlgram::Error->new(
+                message => "API error: $data->{description}",
                 code    => $data->{error_code},
-            );
+            )->croak;
         }
     } else {
         $self->{logger}->error("HTTP error: " . $response->status_line);
-        croak Perlgram::Error->new(
+        Perlgram::Error->new(
             message => "HTTP error: " . $response->status_line,
             code    => $response->code,
-        );
+        )->croak;
     }
 }
 
@@ -169,6 +168,7 @@ sub getMyDefaultAdministratorRights { shift->api_request('getMyDefaultAdministra
 
 1;
 __END__
+
 
 =head1 NAME
 
